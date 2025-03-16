@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简易文件转换器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "SF Pro", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 560px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        h1 {
+            font-size: 24px;
+            color: #1d1d1f;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d2d2d7;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #0071e3;
+            background-color: rgba(0, 113, 227, 0.03);
+        }
+        
+        .upload-area.highlight {
+            border-color: #0071e3;
+            background-color: rgba(0, 113, 227, 0.08);
+        }
+        
+        .upload-text {
+            color: #6e6e73;
+            margin-bottom: 15px;
+        }
+        
+        .file-btn {
+            background-color: #0071e3;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .file-btn:hover {
+            background-color: #0062cc;
+        }
+        
+        #convert-btn {
+            display: block;
+            width: 100%;
+            background-color: #0071e3;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        #convert-btn:hover {
+            background-color: #0062cc;
+        }
+        
+        #convert-btn:disabled {
+            background-color: #d2d2d7;
+            cursor: not-allowed;
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f7;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-info p {
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f5f5f7;
+            display: none;
+        }
+        
+        .result.success {
+            background-color: #e3f2fd;
+        }
+        
+        .result.error {
+            background-color: #feecf0;
+            color: #e53935;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0071e3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .download-btn {
+            display: inline-block;
+            margin-top: 10px;
+            background-color: #34c759;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .download-btn:hover {
+            background-color: #2eb350;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>简易文件转换器</h1>
+        
+        <div class="upload-area" id="drop-area">
+            <p class="upload-text">拖放文件到这里，或</p>
+            <input type="file" id="file-input" hidden>
+            <button class="file-btn" onclick="document.getElementById('file-input').click()">选择文件</button>
+        </div>
+        
+        <div class="file-info" id="file-info">
+            <p>文件名: <span id="file-name"></span></p>
+            <p>大小: <span id="file-size"></span></p>
+            <p>类型: <span id="file-type"></span></p>
+        </div>
+        
+        <button id="convert-btn" disabled>开始转换</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在处理，请稍候...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // DOM元素
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const fileType = document.getElementById('file-type');
+        const convertBtn = document.getElementById('convert-btn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        
+        // 当前选择的文件
+        let selectedFile = null;
+        
+        // 拖放事件
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        // 处理拖放文件
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        }
+        
+        // 处理文件选择
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFiles(this.files);
+            }
+        });
+        
+        // 处理文件
+        function handleFiles(files) {
+            selectedFile = files[0];
+            displayFileInfo(selectedFile);
+            convertBtn.disabled = false;
+        }
+        
+        // 显示文件信息
+        function displayFileInfo(file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileType.textContent = file.type || '未知类型';
+            fileInfo.style.display = 'block';
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 提交转换请求
+        convertBtn.addEventListener('click', async function() {
+            if (!selectedFile) return;
+            
+            // 显示加载状态
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            convertBtn.disabled = true;
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            try {
+                // 发送请求到服务器
+                const response = await fetch('/api/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // 解析响应
+                const data = await response.json();
+                
+                // 显示结果
+                if (data.success) {
+                    result.innerHTML = `
+                        <p>处理成功! ${data.message}</p>
+                        <p>文件已转换为: ${data.fileInfo.targetFormat}</p>
+                        <form method="GET" action="${data.downloadUrl}">
+                            <button type="submit" class="download-btn">下载转换后的文件</button>
+                        </form>
+                    `;
+                    result.className = 'result success';
+                } else {
+                    result.innerHTML = `<p>处理失败: ${data.error}</p>`;
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                console.error('转换请求失败:', error);
+                result.innerHTML = `<p>提交转换任务失败: ${error.message || 'Failed to fetch'}</p>`;
+                result.className = 'result error';
+            } finally {
+                // 隐藏加载状态
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                convertBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html> 

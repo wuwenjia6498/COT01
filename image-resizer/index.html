@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调整图片尺寸 - 老约翰效率办公桌</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <!-- 渐变背景标题区域 -->
+    <header class="gradient-header">
+        <a href="../index.html" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M31 36L19 24L31 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            返回首页
+        </a>
+
+        <div class="header-content">
+            <h1>调整图片尺寸</h1>
+            <p>快速调整图片大小比例，满足各种使用场景需求，提高图像处理效率</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="main-container">
+            <!-- 工具区域 -->
+            <div class="tool-area">
+                <div class="upload-area" id="drop-area">
+                    <svg class="upload-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M24 32V10M24 10L17 17M24 10L31 17" stroke="#4A89DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M40 32V36C40 37.0609 39.5786 38.0783 38.8284 38.8284C38.0783 39.5786 37.0609 40 36 40H12C10.9391 40 9.92172 39.5786 9.17157 38.8284C8.42143 38.0783 8 37.0609 8 36V32" stroke="#4A89DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3>点击或拖放图片文件到这里</h3>
+                    <p>支持JPG、PNG、GIF、BMP、WEBP等格式</p>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                </div>
+
+                <div id="editor-area" class="editor-area" style="display: none;">
+                    <div class="preview-container">
+                        <div class="preview-wrapper">
+                            <img id="preview-image" src="" alt="预览图">
+                        </div>
+                        <div class="image-info">
+                            <span id="original-size">原始尺寸: 0 x 0</span>
+                            <span id="file-size">文件大小: 0 KB</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-container">
+                        <h3>调整设置</h3>
+                        
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="keep-ratio" checked>
+                                保持宽高比
+                            </label>
+                        </div>
+
+                        <div class="setting-group dimensions">
+                            <div class="dimension-input">
+                                <label for="width">宽度 (px)</label>
+                                <input type="number" id="width" min="1" max="10000" placeholder="宽度">
+                            </div>
+                            <div class="dimension-input">
+                                <label for="height">高度 (px)</label>
+                                <input type="number" id="height" min="1" max="10000" placeholder="高度">
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h4>快速调整</h4>
+                            <div class="preset-buttons">
+                                <button data-scale="0.25">25%</button>
+                                <button data-scale="0.5">50%</button>
+                                <button data-scale="0.75">75%</button>
+                                <button data-scale="1">100%</button>
+                                <button data-scale="1.5">150%</button>
+                                <button data-scale="2">200%</button>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h4>常用尺寸</h4>
+                            <div class="preset-buttons">
+                                <button data-width="800" data-height="600">800×600</button>
+                                <button data-width="1024" data-height="768">1024×768</button>
+                                <button data-width="1280" data-height="720">1280×720</button>
+                                <button data-width="1920" data-height="1080">1920×1080</button>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h4>图片质量</h4>
+                            <div class="quality-slider">
+                                <input type="range" id="quality" min="10" max="100" value="90">
+                                <span id="quality-value">90%</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-group format-select">
+                            <label for="format">输出格式</label>
+                            <select id="format">
+                                <option value="jpeg">JPEG</option>
+                                <option value="png">PNG</option>
+                                <option value="webp">WEBP</option>
+                            </select>
+                        </div>
+
+                        <div class="buttons-group">
+                            <button id="resize-button" class="primary-button">调整尺寸</button>
+                            <button id="download-button" class="secondary-button" disabled>下载图片</button>
+                            <button id="reset-button" class="tertiary-button">重新上传</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 使用说明区域 -->
+            <div class="help-area">
+                <div class="help-card">
+                    <h3>调整图片尺寸使用说明</h3>
+                    <ul class="help-list">
+                        <li>
+                            <span class="step">上传图片：</span> 点击上传区域或将图片拖放到
+                            虚框内。
+                        </li>
+                        <li>
+                            <span class="step">选择设置：</span> 选择您想要的目标图片尺寸。
+                        </li>
+                        <li>
+                            <span class="step">调整参数：</span> 移动滑块来调整输出图片的质量。
+                        </li>
+                        <li>
+                            <span class="step">添加设置：</span> 可以勾选保持宽高比以避免图片变形。
+                        </li>
+                        <li>
+                            <span class="step">开始转换：</span> 点击"调整尺寸"按钮。
+                        </li>
+                        <li>
+                            <span class="step">下载图片：</span> 转换完成后，点击"下载图片"
+                            按钮保存。
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="help-card formats-guide">
+                    <h3>图片尺寸选择指南</h3>
+                    <ul class="help-list">
+                        <li>
+                            <span class="format">小尺寸图片：</span> 适合用于网站缩略图和聊天应用程序，文件较小。
+                        </li>
+                        <li>
+                            <span class="format">中等尺寸：</span> 适合一般网页显示和电子邮件附件，平衡了质量和文件大小。
+                        </li>
+                        <li>
+                            <span class="format">高清尺寸：</span> 适合高分辨率显示、打印和详细展示，但文件较大。
+                        </li>
+                        <li>
+                            <span class="format">社交媒体：</span> 使用预设尺寸按钮可快速适配各平台要求的图片尺寸。
+                        </li>
+                        <li>
+                            <span class="format">保持比例：</span> 建议始终保持宽高比以避免图片变形。
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© Copyright 老约翰效率办公桌. Created with ❤️</p>
+    </footer>
+
+    <script src="./script.js"></script>
+</body>
+</html> 
